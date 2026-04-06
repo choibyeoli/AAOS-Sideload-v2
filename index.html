@@ -3,31 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AAOS Sideload Bypass Diagnostic Tool v9</title>
+<title>AAOS Sideload Sniper v10</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1115;color:#e2e8f0;padding:20px;max-width:800px;margin:0 auto}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#050505;color:#e2e8f0;padding:20px;max-width:800px;margin:0 auto}
   h1{font-size:1.5em;margin-bottom:8px;color:#f8fafc;letter-spacing:-0.5px}
   .sub{color:#94a3b8;font-size:0.9em;margin-bottom:24px}
-  .m{background:#1e222a;border:1px solid #334155;border-radius:10px;padding:20px;margin-bottom:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)}
+  .m{background:#111;border:1px solid #333;border-radius:10px;padding:20px;margin-bottom:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.5)}
   .m h2{font-size:1.1em;color:#38bdf8;margin-bottom:6px;font-weight:600}
   .m .d{font-size:0.85em;color:#94a3b8;margin-bottom:16px;line-height:1.4}
-  input[type=text]{width:100%;padding:12px;background:#0f1115;border:1px solid #475569;border-radius:6px;color:#f8fafc;font-size:0.95em;margin-bottom:12px;outline:none}
+  input[type=text]{width:100%;padding:12px;background:#000;border:1px solid #444;border-radius:6px;color:#f8fafc;font-size:0.95em;margin-bottom:12px;outline:none}
   input[type=text]:focus{border-color:#38bdf8}
-  button{padding:12px 24px;border:none;border-radius:6px;font-size:0.95em;font-weight:600;cursor:pointer;width:100%;margin-bottom:8px;transition:all 0.2s}
+  button{padding:12px 24px;border:none;border-radius:6px;font-size:0.95em;font-weight:600;cursor:pointer;width:100%;margin-bottom:8px;}
   .bp{background:#0284c7;color:#fff}.bp:active{background:#0369a1}
   .bs{background:#334155;color:#cbd5e1}.bs:active{background:#475569}
-  .bg{background:#16a34a;color:#fff}.bg:active{background:#15803d}
-  .bw{background:#eab308;color:#000}.bw:active{background:#ca8a04}
-  .b-purple{background:#9333ea;color:#fff}.b-purple:active{background:#7e22ce}
-  hr{border:none;border-top:1px solid #334155;margin:12px 0 16px}
-  .tag{display:inline-block;padding:3px 8px;border-radius:4px;font-size:0.7em;font-weight:600;margin-left:8px;vertical-align:middle;text-transform:uppercase}
-  .t1{background:#064e3b;color:#34d399;border:1px solid #059669}
-  .t2{background:#7f1d1d;color:#fca5a5;border:1px solid #dc2626}
-  .log{background:#000;border:1px solid #334155;border-radius:6px;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:0.8em;color:#cbd5e1;max-height:250px;overflow-y:auto;margin-top:12px;display:none;line-height:1.6}
+  .br{background:#dc2626;color:#fff}.br:active{background:#b91c1c}
+  hr{border:none;border-top:1px solid #333;margin:12px 0 16px}
+  .log{background:#000;border:1px solid #222;border-radius:6px;padding:12px;font-family:monospace;font-size:0.8em;color:#cbd5e1;max-height:250px;overflow-y:auto;margin-top:12px;display:none;line-height:1.6}
   .log.show{display:block}
   .log-ok{color:#4ade80}.log-warn{color:#fbbf24}.log-err{color:#f87171}.log-info{color:#7dd3fc}
-  .pbar{width:100%;height:6px;background:#334155;border-radius:3px;margin:8px 0;display:none;overflow:hidden}
+  .pbar{width:100%;height:6px;background:#333;border-radius:3px;margin:8px 0;display:none;}
   .pbar.show{display:block}
   .pfill{height:100%;background:#38bdf8;width:0%;transition:width 0.3s}
   .ptext{font-size:0.8em;color:#94a3b8;margin-bottom:4px;display:none}
@@ -36,101 +31,38 @@
 </head>
 <body>
 
-<h1>AAOS Bypass Diagnostic Tool v9</h1>
-<p class="sub">차량용 안드로이드(AAOS) 다운로드/실행 제한 우회 통합 모듈 (Ultimate)</p>
+<h1>Sideload Sniper v10</h1>
+<p class="sub">크로미움 보안 정책 및 MDM 원천 차단 우회 모듈</p>
 
-<div class="m" style="border-color: #f59e0b;">
-  <h2 style="color: #fbbf24;">Phase 0: 권한 탈취 사전 작업 <span class="tag" style="background:#b45309;color:#fff;border:none;">필수 확인</span></h2>
-  <p class="d">OS가 설치 요청을 묵살하지 않도록, 현재 브라우저(Whale/Vivaldi)에 '알 수 없는 앱 설치' 권한이 부여되어 있는지 확인합니다.</p>
+<div class="m">
+  <h2>1. RAM 탄창 장전</h2>
+  <p class="d">디스크를 거치지 않고 메모리에 대상 파일을 장전합니다.</p>
   <hr>
-  <button class="bs" onclick="openSecuritySettings()">숨겨진 보안 설정 창 강제 호출 (Intent)</button>
-  <div class="log" id="logSecurity"></div>
-</div>
-
-<div class="m" style="border-color: #ef4444;">
-  <h2 style="color: #f87171;">Method A: System Exploits <span class="tag t2">핵폭탄급/최우선</span></h2>
-  <p class="d">파일 시스템 차단 정책(MDM)을 원천 우회하기 위해, 안드로이드 OS의 숨겨진 관리자 메뉴 및 디버깅 옵션을 강제로 팝업시킵니다.</p>
-  <hr>
-  <button class="bg" onclick="triggerIntent('intent:#Intent;action=android.settings.APPLICATION_DEVELOPMENT_SETTINGS;end')" style="background:#b91c1c;">1. 개발자 옵션 강제 호출 (무선 ADB 뚫기)</button>
-  <button class="bs" onclick="triggerIntent('intent:#Intent;action=android.settings.SETTINGS;end')">2. 안드로이드 순정 설정 앱 열기</button>
-  <button class="bs" onclick="triggerIntent('intent:#Intent;action=android.settings.INTERNAL_STORAGE_SETTINGS;end')">3. 순정 저장소 관리자 다이렉트 열기</button>
-  <div class="log" id="logExploit"></div>
+  <input type="text" id="urlInput" placeholder="APK URL 입력">
+  <button class="bp" onclick="loadToRAM()">페이로드 메모리 적재</button>
+  <div class="ptext" id="pt">대기 상태</div>
+  <div class="pbar" id="pb"><div class="pfill" id="pf"></div></div>
+  <div class="log" id="logRam"></div>
 </div>
 
 <div class="m">
-  <h2>Method B: RAM-to-Share Injection <span class="tag t1">Golden Ticket</span></h2>
-  <p class="d">디스크 저장을 생략하고 브라우저 메모리에 페이로드를 적재한 뒤, Share API 및 내비게이션 우회로 시스템 패키지 인스톨러로 직접 넘깁니다.</p>
+  <h2>무기 A: Share API 스푸핑 (블랙리스트 우회)</h2>
+  <p class="d">.apk 확장자가 브라우저 공유 차단 목록에 있는 것을 역이용하여, 안전한 파일로 위장해 공유 창을 강제 호출합니다.</p>
   <hr>
-  <input type="text" id="urlShare" placeholder="설치할 대상의 URL (APK 형식)">
-  
-  <button class="bp" onclick="loadToRAM()">Step 1: RAM에 페이로드 적재 (디스크 미사용)</button>
-  <div class="ptext" id="ptShare">대기 상태</div>
-  <div class="pbar" id="pbShare"><div class="pfill" id="pfShare"></div></div>
-  <div id="ramInfo" style="font-size:0.85em;color:#94a3b8;margin:8px 0;padding:8px;background:#0f1115;border-radius:4px;display:none;border:1px solid #334155;"></div>
-
-  <button class="bg" onclick="triggerShare()" id="btnShare" style="display:none; margin-top:8px;">Step 2: OS 공유 시트 호출 (Share API)</button>
-  <button class="bs" onclick="triggerBlobNav()" id="btnNav" style="display:none; margin-top:8px;">Fallback 1: Blob URL 강제 이동</button>
-  <button class="bw" onclick="triggerBlobForm()" id="btnForm" style="display:none; margin-top:8px;">Fallback 2: 투명 Form 강제 Submit</button>
+  <button class="bs" onclick="spoofShare('app.zip', 'application/zip')">1. ZIP 파일로 위장 공유 (추천)</button>
+  <button class="bs" onclick="spoofShare('app.bin', 'application/octet-stream')">2. BIN 바이너리로 위장 공유</button>
+  <button class="bs" onclick="spoofShare('app.txt', 'text/plain')">3. TXT 문서로 위장 공유</button>
   <div class="log" id="logShare"></div>
 </div>
 
-<div class="m">
-  <h2>Method C: OPFS Sandbox Injection <span class="tag t1">Persistence</span></h2>
-  <p class="d">브라우저 샌드박스 내부의 암호화된 가상 파일 시스템(OPFS)에 페이로드를 영구 은닉한 후 Share API로 토스합니다.</p>
+<div class="m" style="border-color: #dc2626;">
+  <h2 style="color: #fca5a5;">무기 B: 인스톨러 다이렉트 저격 (MDM 우회)</h2>
+  <p class="d">보안 정책이 브로드캐스트(VIEW)를 차단하더라도, 안드로이드 순정 패키지 설치 프로그램의 코어 컴포넌트 좌표를 직접 타격합니다.</p>
   <hr>
-  <button class="bp" onclick="saveToOPFS()">Step 1: OPFS 가상 스토리지에 페이로드 은닉</button>
-  <div class="ptext" id="ptOPFS">대기 상태</div>
-  <div class="pbar" id="pbOPFS"><div class="pfill" id="pfOPFS"></div></div>
-  
-  <button class="bg" onclick="shareFromOPFS()" id="btnOpfsShare" style="display:none; margin-top:12px;">Step 2: 은닉된 파일 Share API로 호출</button>
-  <div class="log" id="logOPFS"></div>
-</div>
-
-<div class="m">
-  <h2>Method D: FSA API Async Override <span class="tag t1">Patch Applied</span></h2>
-  <p class="d">스트림 수신 전 OS 네이티브 저장소 핸들을 먼저 획득하여 User Gesture 타임아웃 예외를 우회합니다.</p>
-  <hr>
-  <input type="text" id="urlFSA" placeholder="설치할 대상의 URL (APK 형식)">
-  <button class="bp" onclick="fsaFixedSave()">네이티브 저장소 핸들 획득 후 다운로드</button>
-  <div class="ptext" id="ptFSA">대기 상태</div>
-  <div class="pbar" id="pbFSA"><div class="pfill" id="pfFSA"></div></div>
-  <div class="log" id="logFSA"></div>
-</div>
-
-<div class="m">
-  <h2>Method E: 확장자 위장 다운로드 <span class="tag t1">Fallback</span></h2>
-  <p class="d">보안 필터를 우회할 수 있는 텍스트(.txt) 형식으로 패키지를 다운로드한 후 설치 프로세스를 호출합니다.</p>
-  <hr>
-  <input type="text" id="urlTxt" placeholder="설치할 대상의 URL (APK 형식)">
-  <button class="bp" onclick="downloadAsTxt()">Step 1: 보안 필터 우회 다운로드 (.txt)</button>
-  <div class="ptext" id="ptFS">대기 상태</div>
-  <div class="pbar" id="pbFS"><div class="pfill" id="pfFS"></div></div>
-  
-  <button class="bs" onclick="document.getElementById('filePickTxt').click()" style="margin-top:16px;">Step 2: 로컬 파일 시스템에서 페이로드 로드</button>
-  <input type="file" id="filePickTxt" accept=".txt, text/plain, */*" style="display:none" onchange="loadLocalPayload(this)">
-  <div id="txtFileInfo" style="font-size:0.85em;color:#94a3b8;margin:8px 0;padding:8px;background:#0f1115;border-radius:4px;display:none;border:1px solid #334155;"></div>
-  
-  <button class="bg" onclick="executePayload()" id="btnExecuteTxt" style="display:none; margin-top:8px;">Step 3: 패키지 인스톨러 호출</button>
-  <div class="log" id="logTxt"></div>
-</div>
-
-<div class="m" style="border-color: #a855f7;">
-  <h2 style="color: #c084fc;">🧪 Experimental Lab (도파민 충전소) <span class="tag" style="background:#7e22ce;color:#fff;border:none;">FUN</span></h2>
-  <p class="d">디버깅 중 스트레스 해소용 모듈. 차량 스피커 제어, 진동 모터, 숨겨진 안드로이드 이스터에그 등을 호출합니다.</p>
-  <hr>
-  <button class="b-purple" onclick="hackTheSpeaker()">🔊 1. 차량 스피커 강제 제어 (Web TTS)</button>
-  <button class="bs" onclick="triggerIntent('intent:#Intent;action=android.intent.action.DIAL;data=tel:*%23*%234636%23*%23*;end')">📞 2. 엔지니어링 모드 다이얼 (4636)</button>
-  <button class="bs" onclick="testHaptics()">📳 3. 햅틱/진동 모터 강제 구동</button>
-  <button class="bw" onclick="triggerIntent('intent:#Intent;component=com.android.systemui/com.android.systemui.DessertCase;end')">🍭 4. 안드로이드 순정 이스터에그 호출</button>
-  <button class="bg" onclick="getBatteryStatus()" style="background:#059669;">🔋 5. 차량 배터리 스니핑</button>
-  <div class="log" id="logLab"></div>
-</div>
-
-<div class="m">
-  <h2>System Diagnostics</h2>
-  <hr>
-  <button class="bs" onclick="runDiag()">브라우저 환경 및 API 지원 여부 진단</button>
-  <div class="log" id="logDiag"></div>
+  <button class="br" onclick="sniperIntent('com.android.packageinstaller/.InstallStart')">타격점 1: AOSP InstallStart</button>
+  <button class="br" onclick="sniperIntent('com.google.android.packageinstaller/com.android.packageinstaller.InstallStart')">타격점 2: Google InstallStart</button>
+  <button class="br" onclick="sniperIntent('com.android.packageinstaller/.PackageInstallerActivity')">타격점 3: Legacy Activity</button>
+  <div class="log" id="logSniper"></div>
 </div>
 
 <script>
@@ -140,256 +72,83 @@ function al(el,msg,t){
   var d=document.createElement('div');
   d.className='log-'+(t||'info');
   d.textContent=(t==='ok'?'[SUCCESS] ':t==='err'?'[ERROR] ':t==='warn'?'[WARN] ':'[INFO] ')+msg;
-  el.appendChild(d);
-  el.scrollTop=el.scrollHeight;
+  el.appendChild(d); el.scrollTop=el.scrollHeight;
 }
 function cl(el){el.innerHTML='';el.classList.add('show')}
 function fb(b){return b<1024?b+' B':b<1048576?(b/1024).toFixed(2)+' KB':(b/1048576).toFixed(2)+' MB'}
 
-// =======================================================
-// 코어 데이터 스트림 수신 함수
-// =======================================================
-async function fetchWithProgress(url, ptId, pbId, pfId, log) {
-  var pt=$(ptId), pb=$(pbId), pf=$(pfId);
+var _ramBlob = null;
+
+// 공통 fetch (버퍼링 전용으로 간소화)
+async function loadToRAM() {
+  var url = $('urlInput').value.trim(), l = $('logRam'); cl(l);
+  if (!url) { al(l, 'URL을 입력하십시오.', 'err'); return; }
+  
+  var pt=$('pt'), pb=$('pb'), pf=$('pf');
   pt.classList.add('show'); pb.classList.add('show');
-  pt.textContent='대상 서버에 연결 중...'; pf.style.width='0%';
-  al(log,'Fetch 요청 시작: '+url,'info');
+  pt.textContent='데이터 수신 중...'; pf.style.width='50%';
+  al(l,'네트워크 요청 시작...','info');
 
   try {
     var response = await fetch(url);
-    if(!response.ok) throw new Error('HTTP 연결 실패 ('+response.status+')');
-    var total = parseInt(response.headers.get('Content-Length')||'0');
-    
-    if(!response.body || !response.body.getReader) {
-      al(log,'Reader API 미지원. 버퍼링 방식 수신 시작...','warn');
-      pt.textContent='데이터 수신 중 (진행 상태 표시 불가)...';
-      var blob = await response.blob();
-      pf.style.width='100%'; pt.textContent='수신 완료: '+fb(blob.size);
-      return blob;
-    }
-
-    var reader = response.body.getReader(), received = 0, chunks = [], lastUpdate = Date.now();
-    while(true) {
-      var result = await reader.read();
-      if(result.done) break;
-      chunks.push(result.value); received += result.value.length;
-      var now = Date.now();
-      if(now - lastUpdate > 300) {
-        lastUpdate = now;
-        if(total > 0) {
-          pf.style.width = Math.round(received/total*100)+'%';
-          pt.textContent = '수신 중: '+fb(received)+' / '+fb(total);
-        } else {
-          pt.textContent = '수신 중: '+fb(received);
-        }
-      }
-    }
-    pf.style.width='100%'; pt.textContent='수신 완료: '+fb(received);
-    al(log,'데이터 스트림 수신 성공: '+fb(received),'ok');
-    return new Blob(chunks);
+    if(!response.ok) throw new Error('HTTP ' + response.status);
+    _ramBlob = await response.blob();
+    pf.style.width='100%';
+    pt.textContent='장전 완료: ' + fb(_ramBlob.size);
+    al(l,'메모리 적재 완료! (MIME: ' + _ramBlob.type + ')', 'ok');
   } catch(e) {
-    pt.textContent='요청 실패'; al(log,'Fetch 프로세스 예외 발생: '+e.message,'err'); throw e;
+    pt.textContent='요청 실패'; al(l, e.message, 'err');
   }
 }
 
-// =======================================================
-// Phase 0: 보안 설정 오픈
-// =======================================================
-function openSecuritySettings() {
-  var l = $('logSecurity'); cl(l);
-  al(l, '안드로이드 순정 보안 설정 창 호출을 시도합니다...', 'info');
-  var intents = [
-    'intent:#Intent;action=android.settings.MANAGE_UNKNOWN_APP_SOURCES;end',
-    'intent:#Intent;action=android.settings.SECURITY_SETTINGS;end'
-  ];
-  intents.forEach((uri, i) => {
-    setTimeout(() => {
-      al(l, '호출 시도 ' + (i+1) + ': ' + uri.split('action=')[1].split(';')[0], 'info');
-      try { window.location.href = uri; al(l, '전송 완료. 설정 창이 뜨면 권한을 허용하십시오.', 'ok'); } 
-      catch(e) { al(l, '호출 실패: ' + e.message, 'err'); }
-    }, i * 2000);
-  });
-}
+// 무기 A: Share 스푸핑
+async function spoofShare(fakeName, fakeType) {
+  var l = $('logShare'); cl(l);
+  if (!_ramBlob) { al(l, 'RAM에 먼저 장전하십시오.', 'err'); return; }
+  if (!navigator.share) { al(l, 'Share API 미지원', 'err'); return; }
 
-// =======================================================
-// Method A: 시스템 익스플로잇
-// =======================================================
-function triggerIntent(uri) {
-  var l = $('logExploit'); cl(l);
-  al(l, '시스템 딥링크 호출 중: ' + uri.split('action=')[1].split(';')[0], 'info');
-  try { window.location.href = uri; al(l, '명령 전송 완료. 화면 전환을 확인하십시오.', 'ok'); } 
-  catch(e) { al(l, '호출 실패: ' + e.message, 'err'); }
-}
-
-// =======================================================
-// Method B: RAM-to-Share
-// =======================================================
-var _ramBlob = null;
-async function loadToRAM() {
-  var url = $('urlShare').value.trim(), l = $('logShare'); cl(l);
-  if (!url) { al(l, '유효한 대상 URL을 입력하십시오.', 'err'); return; }
-  
-  ['btnShare', 'btnNav', 'btnForm', 'ramInfo'].forEach(id => $(id).style.display = 'none');
-  
+  al(l, '브라우저 검열 우회용 위장 파일 생성 중... (' + fakeName + ')', 'info');
   try {
-    al(l, '디스크 캐싱을 우회하고 브라우저 힙 메모리에 페이로드를 맵핑합니다...', 'info');
-    _ramBlob = await fetchWithProgress(url, 'ptShare', 'pbShare', 'pfShare', l);
-    $('ramInfo').style.display = 'block';
-    $('ramInfo').innerHTML = '🧠 <b>메모리 적재 완료</b>: ' + fb(_ramBlob.size) + ' (Ready to Inject)';
+    // APK 데이터를 다른 확장자로 세탁
+    var spoofedFile = new File([_ramBlob], fakeName, { type: fakeType });
     
-    ['btnShare', 'btnNav', 'btnForm'].forEach(id => $(id).style.display = 'block');
-    al(l, 'RAM 맵핑 성공. [Step 2] 버튼을 눌러 OS에 핸드오프하십시오.', 'ok');
-  } catch(e) { al(l, '메모리 적재 실패: ' + e.message, 'err'); }
+    if (navigator.canShare && navigator.canShare({ files: [spoofedFile] })) {
+      await navigator.share({
+        files: [spoofedFile],
+        title: 'Open File',
+        text: '파일을 열 앱을 선택하세요.'
+      });
+      al(l, '공유 창 호출 성공! 목록에 패키지 설치 관리자가 뜨길 빕니다.', 'ok');
+    } else {
+      al(l, '이 확장자(' + fakeName + ')도 브라우저가 공유를 막았습니다.', 'err');
+    }
+  } catch (e) {
+    al(l, '공유 실패: ' + e.message, 'err');
+  }
 }
 
-async function triggerShare() {
-  var l = $('logShare'); if (!_ramBlob) return;
-  if (!navigator.share) { al(l, 'Share API 미지원. Fallback을 이용하십시오.', 'err'); return; }
-  try {
-    var apkFile = new File([_ramBlob], "install_payload.apk", { type: "application/vnd.android.package-archive" });
-    await navigator.share({ files: [apkFile], title: 'APK 설치' });
-    al(l, '핸드오프 성공! 팝업에서 [설치]를 선택하십시오.', 'ok');
-  } catch (e) { al(l, 'Share API 예외: ' + e.message, 'err'); }
-}
+// 무기 B: 컴포넌트 다이렉트 저격
+async function sniperIntent(componentName) {
+  var l = $('logSniper'); cl(l);
+  if (!_ramBlob) { al(l, 'RAM에 먼저 장전하십시오.', 'err'); return; }
 
-async function triggerBlobNav() {
-  var l = $('logShare'); if (!_ramBlob) return;
+  al(l, '안드로이드 코어 설치 컴포넌트 저격 준비: ' + componentName, 'info');
   try {
+    // 1. 메모리의 APK를 읽을 수 있도록 Blob URL 생성
     var apkBlob = new Blob([_ramBlob], { type: 'application/vnd.android.package-archive' });
-    window.location.href = URL.createObjectURL(apkBlob);
-    al(l, '내비게이션 명령이 전송되었습니다.', 'ok');
-  } catch(e) { al(l, '내비게이션 실패: ' + e.message, 'err'); }
-}
-
-async function triggerBlobForm() {
-  var l = $('logShare'); if (!_ramBlob) return;
-  try {
-    var apkBlob = new Blob([_ramBlob], { type: 'application/vnd.android.package-archive' });
-    var form = document.createElement('form');
-    form.action = URL.createObjectURL(apkBlob); form.method = 'GET'; form.target = '_self';
-    document.body.appendChild(form); form.submit();
-    al(l, 'Form Submit 트리거 성공!', 'ok');
-  } catch(e) { al(l, 'Form Submit 실패: ' + e.message, 'err'); }
-}
-
-// =======================================================
-// Method C: OPFS Sandbox
-// =======================================================
-async function saveToOPFS() {
-  var url = $('urlShare').value.trim(), l = $('logOPFS'); cl(l);
-  if (!url) { al(l, '상단의 Method B에 대상 URL을 입력하십시오.', 'err'); return; }
-  if (!navigator.storage || !navigator.storage.getDirectory) { al(l, 'OPFS 미지원 브라우저입니다.', 'err'); return; }
-  $('btnOpfsShare').style.display = 'none';
-  try {
-    var blob = await fetchWithProgress(url, 'ptOPFS', 'pbOPFS', 'pfOPFS', l);
-    var root = await navigator.storage.getDirectory();
-    var fileHandle = await root.getFileHandle('hidden_payload.apk', { create: true });
-    var writable = await fileHandle.createWritable();
-    await writable.write(blob); await writable.close();
-    al(l, '브라우저 샌드박스(OPFS)에 파일 은닉 완료.', 'ok');
-    $('btnOpfsShare').style.display = 'block';
-  } catch(e) { al(l, 'OPFS 은닉 실패: ' + e.message, 'err'); }
-}
-
-async function shareFromOPFS() {
-  var l = $('logOPFS');
-  try {
-    var root = await navigator.storage.getDirectory();
-    var fileHandle = await root.getFileHandle('hidden_payload.apk');
-    var file = await fileHandle.getFile();
-    var apkFile = new File([file], "system_update.apk", { type: "application/vnd.android.package-archive" });
-    if (navigator.share) {
-      await navigator.share({ files: [apkFile], title: 'APK Install' });
-      al(l, 'Share 시트 호출 성공!', 'ok');
-    } else al(l, 'Share API 미지원.', 'err');
-  } catch(e) { al(l, 'OPFS 공유 실패: ' + e.message, 'err'); }
-}
-
-// =======================================================
-// Method D: FSA API Async Override
-// =======================================================
-async function fsaFixedSave() {
-  var url = $('urlFSA').value.trim(), l = $('logFSA'); cl(l);
-  if(!url) return;
-  if(!('showSaveFilePicker' in window)) { al(l, 'FSA API 미지원.', 'err'); return; }
-  try {
-    al(l, 'OS 네이티브 저장소 권한 핸들을 우선적으로 요청합니다...', 'info');
-    var fileHandle = await window.showSaveFilePicker({ suggestedName: 'payload.apk', types: [{ description: 'APK', accept: { 'application/vnd.android.package-archive': ['.apk'] } }] });
-    var rawBlob = await fetchWithProgress(url, 'ptFSA', 'pbFSA', 'pfFSA', l);
-    var writable = await fileHandle.createWritable();
-    await writable.write(rawBlob); await writable.close();
-    al(l, '기록 완료!', 'ok');
-  } catch(e) { al(l, e.name === 'AbortError' ? '권한 요청 취소됨.' : 'API 오류: ' + e.message, 'err'); }
-}
-
-// =======================================================
-// Method E: txt 확장자 위장 (Fallback)
-// =======================================================
-var _payloadFile = null;
-async function downloadAsTxt() {
-  var url = $('urlTxt').value.trim(), l = $('logTxt'); cl(l);
-  if (!url) { al(l, 'URL을 입력하십시오.', 'err'); return; }
-  try {
-    var rawBlob = await fetchWithProgress(url, 'ptFS', 'pbFS', 'pfFS', l);
-    var textMaskedBlob = new Blob([rawBlob], { type: 'text/plain' });
-    var a = document.createElement('a'); a.href = URL.createObjectURL(textMaskedBlob); a.download = 'payload_masked.txt';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    al(l, '위장 다운로드 트리거됨.', 'ok');
-  } catch(e) { al(l, '다운로드 실패: ' + e.message, 'err'); }
-}
-function loadLocalPayload(input) {
-  var l = $('logTxt'); if (!input.files || input.files.length === 0) return;
-  _payloadFile = input.files[0]; 
-  $('txtFileInfo').style.display = 'block'; $('txtFileInfo').innerHTML = '📄 <b>' + _payloadFile.name + '</b>';
-  $('btnExecuteTxt').style.display = 'block'; input.value = ''; al(l, '파일 마운트 완료.', 'ok');
-}
-async function executePayload() {
-  var l = $('logTxt'); if (!_payloadFile) return;
-  try {
-    var apkBlob = new Blob([_payloadFile], { type: 'application/vnd.android.package-archive' });
-    window.location.href = URL.createObjectURL(apkBlob); al(l, '인스톨러 호출 됨.', 'ok');
-  } catch(e) { al(l, '호출 실패: ' + e.message, 'err'); }
-}
-
-// =======================================================
-// 도파민 충전소 (Experimental Lab)
-// =======================================================
-function hackTheSpeaker() {
-  var l = $('logLab'); cl(l);
-  if (!('speechSynthesis' in window)) { al(l, 'TTS 미지원 브라우저임.', 'err'); return; }
-  al(l, '차량 스피커로 음성 쐈음 ㅋㅋ', 'info');
-  var msg = new SpeechSynthesisUtterance("경고. 시스템 통제권을 탈취했습니다. 폴스타 보안 시스템이 무력화되었습니다.");
-  msg.lang = 'ko-KR'; msg.rate = 0.9; msg.pitch = 0.8;
-  window.speechSynthesis.speak(msg);
-  al(l, 'TTS 발동!', 'ok');
-}
-function testHaptics() {
-  var l = $('logLab'); cl(l);
-  if (!navigator.vibrate) { al(l, '진동 API 미지원.', 'err'); return; }
-  navigator.vibrate([100, 30, 100, 30, 100, 200, 300, 30, 300, 30, 300, 200, 100, 30, 100, 30, 100]);
-  al(l, 'SOS 모스 부호 진동 전송 됨!', 'ok');
-}
-function getBatteryStatus() {
-  var l = $('logLab'); cl(l);
-  if (!navigator.getBattery) { al(l, '배터리 API 미지원.', 'err'); return; }
-  navigator.getBattery().then(battery => {
-    al(l, '배터리 잔량: ' + (battery.level * 100).toFixed(1) + '%', 'ok');
-    al(l, battery.charging ? '충전 중 ⚡' : '방전 중 🔋', 'info');
-  });
-}
-
-// =======================================================
-// 진단 유틸리티
-// =======================================================
-function runDiag(){
-  var l=$('logDiag');cl(l);
-  al(l,'System Info: ' + navigator.userAgent,'info');
-  var apis = [
-    ['Blob', typeof Blob !== 'undefined'], ['URL.createObjectURL', !!URL.createObjectURL],
-    ['Web Share API', !!navigator.share], ['FSA API', 'showSaveFilePicker' in window],
-    ['OPFS', !!(navigator.storage && navigator.storage.getDirectory)]
-  ];
-  apis.forEach(c => al(l, c[0] + ': ' + (c[1] ? 'Supported' : 'Not Supported'), c[1] ? 'ok' : 'err'));
+    var blobUrl = URL.createObjectURL(apkBlob);
+    
+    // 2. 다이렉트 컴포넌트 인텐트 조립 (VIEW가 아닌 강제 지정)
+    var intentUri = 'intent://' + blobUrl.replace(/^blob:/, '') + 
+                    '#Intent;scheme=blob;action=android.intent.action.INSTALL_PACKAGE;type=application/vnd.android.package-archive;component=' + componentName + ';end';
+    
+    al(l, '발사: ' + intentUri.substring(0, 80) + '...', 'info');
+    
+    window.location.href = intentUri;
+    al(l, '명령 하달 완료. 설치 창이 멱살 잡혀서 올라오길 빕니다.', 'ok');
+  } catch(e) {
+    al(l, '인텐트 발사 실패: ' + e.message, 'err');
+  }
 }
 </script>
 </body>
