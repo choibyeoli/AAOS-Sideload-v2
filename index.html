@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AAOS Sideload Bypass Diagnostic Tool</title>
+<title>AAOS Sideload Bypass Diagnostic Tool v6</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1115;color:#e2e8f0;padding:20px;max-width:800px;margin:0 auto}
@@ -21,6 +21,7 @@
   hr{border:none;border-top:1px solid #334155;margin:12px 0 16px}
   .tag{display:inline-block;padding:3px 8px;border-radius:4px;font-size:0.7em;font-weight:600;margin-left:8px;vertical-align:middle;text-transform:uppercase}
   .t1{background:#064e3b;color:#34d399;border:1px solid #059669}
+  .t2{background:#7f1d1d;color:#fca5a5;border:1px solid #dc2626}
   .log{background:#000;border:1px solid #334155;border-radius:6px;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:0.8em;color:#cbd5e1;max-height:250px;overflow-y:auto;margin-top:12px;display:none;line-height:1.6}
   .log.show{display:block}
   .log-ok{color:#4ade80}.log-warn{color:#fbbf24}.log-err{color:#f87171}.log-info{color:#7dd3fc}
@@ -34,13 +35,39 @@
 <body>
 
 <h1>AAOS Bypass Diagnostic Tool</h1>
-<p class="sub">차량용 안드로이드(AAOS) 브라우저 다운로드 제한 우회 모듈</p>
+<p class="sub">차량용 안드로이드(AAOS) 브라우저 다운로드/실행 제한 우회 모듈 (v6 Final)</p>
 
 <div class="m">
-  <h2>Method: 확장자 위장 기반 로컬 페이로드 실행 <span class="tag t1">Primary</span></h2>
+  <h2>Method 1: Zero-Disk RAM Injector <span class="tag t2">Recommended</span></h2>
+  <p class="d">OS의 파일 시스템 접근이 제한된 환경에서, 디스크(Storage)를 우회하여 브라우저의 휘발성 메모리(RAM)에 페이로드를 적재한 후 시스템 인스톨러로 다이렉트 핸드오프를 시도합니다.</p>
+  <hr>
+  <input type="text" id="urlRam" placeholder="설치할 대상의 URL (APK 형식)">
+  
+  <button class="bp" onclick="ramInjectNavigate()">1. 메모리 로드 및 Navigation 핸드오프 시도</button>
+  <button class="bs" onclick="ramInjectIframe()">2. 메모리 로드 및 Iframe 충돌 유도</button>
+  
+  <div class="ptext" id="ptRam">대기 상태</div>
+  <div class="pbar" id="pbRam"><div class="pfill" id="pfRam"></div></div>
+  <div class="log" id="logRam"></div>
+</div>
+
+<div class="m">
+  <h2>Method 2: FSA API Async Override <span class="tag t1">Patch Applied</span></h2>
+  <p class="d">User Gesture 타임아웃 예외 처리를 수정한 버전입니다. 스트림 수신 전 OS 네이티브 저장소 핸들을 먼저 획득하여 권한 탈취를 시도합니다.</p>
+  <hr>
+  <input type="text" id="urlFSA" placeholder="설치할 대상의 URL (APK 형식)">
+  
+  <button class="bp" onclick="fsaFixedSave()">네이티브 저장소 핸들 획득 후 다운로드</button>
+  
+  <div class="ptext" id="ptFSA">대기 상태</div>
+  <div class="pbar" id="pbFSA"><div class="pfill" id="pfFSA"></div></div>
+  <div class="log" id="logFSA"></div>
+</div>
+
+<div class="m">
+  <h2>Method 3: 확장자 위장 기반 로컬 페이로드 실행 <span class="tag t1">Fallback</span></h2>
   <p class="d">보안 필터를 우회할 수 있는 텍스트(.txt) 형식으로 패키지를 다운로드한 후, 로컬 메모리에서 MIME 타입을 재할당하여 설치 프로세스를 강제 호출합니다.</p>
   <hr>
-  
   <input type="text" id="urlTxt" placeholder="설치할 대상의 URL (APK 형식)">
   
   <button class="bp" onclick="downloadAsTxt()">Step 1: 보안 필터 우회 다운로드 (.txt)</button>
@@ -77,7 +104,7 @@ function al(el,msg,t){
 function cl(el){el.innerHTML='';el.classList.add('show')}
 function fb(b){return b<1024?b+' B':b<1048576?(b/1024).toFixed(2)+' KB':(b/1048576).toFixed(2)+' MB'}
 
-// 데이터 스트림 수신 함수
+// 데이터 스트림 수신 함수 (공통)
 async function fetchWithProgress(url, ptId, pbId, pfId, log) {
   var pt=$(ptId), pb=$(pbId), pf=$(pfId);
   pt.classList.add('show'); pb.classList.add('show');
@@ -93,7 +120,6 @@ async function fetchWithProgress(url, ptId, pbId, pfId, log) {
 
     var total = parseInt(response.headers.get('Content-Length')||'0');
     
-    // 스트리밍을 지원하지 않는 환경 처리
     if(!response.body || !response.body.getReader) {
       al(log,'Reader API 미지원. 버퍼링 방식 수신 시작...','warn');
       pt.textContent='데이터 수신 중 (진행 상태 표시 불가)...';
@@ -138,10 +164,98 @@ async function fetchWithProgress(url, ptId, pbId, pfId, log) {
   }
 }
 
-// 전역 상태 변수
+// =======================================================
+// Method 1: Zero-Disk RAM Injector
+// =======================================================
+async function ramInjectNavigate() {
+  var url = $('urlRam').value.trim(), l = $('logRam'); cl(l);
+  if(!url) { al(l, '대상 URL이 누락되었습니다.', 'err'); return; }
+
+  try {
+    al(l, 'Phase 1: 브라우저 RAM으로 바이너리 데이터 스트리밍 시작...', 'info');
+    var rawBlob = await fetchWithProgress(url, 'ptRam', 'pbRam', 'pfRam', l);
+
+    al(l, 'Phase 2: 메모리 상에서 안드로이드 패키지(APK) 형식으로 컴파일 중...', 'info');
+    var apkBlob = new Blob([rawBlob], { type: 'application/vnd.android.package-archive' });
+    var blobUrl = URL.createObjectURL(apkBlob);
+
+    al(l, 'Phase 3: 다운로드 속성을 배제하고 브라우저 주소창(Location)을 직접 변조합니다.', 'info');
+    window.location.replace(blobUrl);
+
+    al(l, '핸드오프 명령 전송 완료. 시스템 설치 팝업이 활성화되는지 확인하십시오.', 'ok');
+  } catch(e) {
+    al(l, 'RAM Injection 프로세스 실패: ' + e.message, 'err');
+  }
+}
+
+async function ramInjectIframe() {
+  var url = $('urlRam').value.trim(), l = $('logRam'); cl(l);
+  if(!url) return;
+
+  try {
+    al(l, '바이너리 데이터를 RAM에 적재 중...', 'info');
+    var rawBlob = await fetchWithProgress(url, 'ptRam', 'pbRam', 'pfRam', l);
+    var apkBlob = new Blob([rawBlob], { type: 'application/vnd.android.package-archive' });
+    var blobUrl = URL.createObjectURL(apkBlob);
+
+    al(l, '숨겨진 Iframe 객체를 생성하여 Blob 객체 충돌을 유도합니다.', 'info');
+    var frame = document.createElement('iframe');
+    frame.style.display = 'none';
+    frame.src = blobUrl;
+    document.body.appendChild(frame);
+    
+    al(l, 'Iframe 삽입 완료. 다운로드 매니저 우회 여부를 확인하십시오.', 'ok');
+  } catch(e) {
+    al(l, 'Iframe Injection 실패: ' + e.message, 'err');
+  }
+}
+
+// =======================================================
+// Method 2: FSA API Async Override
+// =======================================================
+async function fsaFixedSave() {
+  var url = $('urlFSA').value.trim(), l = $('logFSA'); cl(l);
+  if(!url) return;
+
+  if(!('showSaveFilePicker' in window)) {
+    al(l, '이 브라우저는 File System Access API를 지원하지 않습니다.', 'err');
+    return;
+  }
+
+  try {
+    al(l, 'OS 네이티브 저장소 권한 핸들을 우선적으로 요청합니다...', 'info');
+    
+    var fileHandle = await window.showSaveFilePicker({
+      suggestedName: 'bypass_payload.apk',
+      types: [{
+        description: 'Android Package',
+        accept: { 'application/vnd.android.package-archive': ['.apk'] }
+      }]
+    });
+    
+    al(l, '권한 획득 성공! 데이터 수신을 시작합니다.', 'ok');
+    var rawBlob = await fetchWithProgress(url, 'ptFSA', 'pbFSA', 'pfFSA', l);
+    
+    al(l, '획득한 핸들을 통해 네이티브 스토리지에 데이터를 기록합니다...', 'info');
+    var writable = await fileHandle.createWritable();
+    await writable.write(rawBlob);
+    await writable.close();
+    
+    al(l, '기록 완료! 파일 관리자에서 실행을 시도하십시오.', 'ok');
+  } catch(e) {
+    if(e.name === 'AbortError') {
+      al(l, '사용자가 권한 요청을 거부하였거나 취소했습니다.', 'warn');
+    } else {
+      al(l, 'API 실행 실패: ' + e.message, 'err');
+    }
+  }
+}
+
+// =======================================================
+// Method 3: txt 확장자 위장 (Fallback)
+// =======================================================
 var _payloadFile = null;
 
-// [Step 1] 확장자 위장 다운로드
 async function downloadAsTxt() {
   var url = $('urlTxt').value.trim(), l = $('logTxt'); cl(l);
   if (!url) { al(l, '유효한 대상 URL을 입력하십시오.', 'err'); return; }
@@ -162,13 +276,12 @@ async function downloadAsTxt() {
     a.click();
     document.body.removeChild(a);
     
-    al(l, '다운로드 트리거가 전송되었습니다. 브라우저의 다운로드 승인을 확인하십시오.', 'ok');
+    al(l, '다운로드 트리거가 전송되었습니다. 브라우저 팝업을 확인하십시오.', 'ok');
   } catch(e) {
     al(l, '다운로드 프로세스 실패: ' + e.message, 'err');
   }
 }
 
-// [Step 2] 로컬 파일 로드 및 유효성 검증
 function loadLocalPayload(input) {
   var l = $('logTxt');
   if (!input.files || input.files.length === 0) return;
@@ -180,37 +293,33 @@ function loadLocalPayload(input) {
   $('txtFileInfo').innerHTML = '📄 <b>' + file.name + '</b><br>크기: ' + fb(file.size) + ' / 타입: ' + (file.type || 'text/plain');
   $('btnExecuteTxt').style.display = 'block';
   
-  al(l, '로컬 파일이 메모리에 성공적으로 마운트되었습니다. [Step 3]를 통해 실행을 시도하십시오.', 'ok');
+  al(l, '로컬 파일이 메모리에 성공적으로 마운트되었습니다.', 'ok');
   input.value = ''; 
 }
 
-// [Step 3] 패키지 인스톨러 호출 (Blob Navigation)
 async function executePayload() {
   var l = $('logTxt');
-  if (!_payloadFile) {
-    al(l, '마운트된 페이로드가 없습니다.', 'err');
-    return;
-  }
+  if (!_payloadFile) { al(l, '마운트된 페이로드가 없습니다.', 'err'); return; }
   
   al(l, '안드로이드 네이티브 환경으로 핸드오프(Handoff)를 준비합니다.', 'info');
 
   try {
-    // 1. 순정 안드로이드 패키지 MIME 타입으로 복원
     al(l, 'MIME 타입을 application/vnd.android.package-archive 로 복원 중...', 'info');
     var apkBlob = new Blob([_payloadFile], { type: 'application/vnd.android.package-archive' });
     var targetUrl = URL.createObjectURL(apkBlob);
     
-    // 2. 브라우저 내비게이션을 통한 시스템 처리 유도
-    al(l, '브라우저 주소창 내비게이션을 통해 시스템 패키지 인스톨러로 권한을 위임합니다.', 'info');
+    al(l, '브라우저 내비게이션을 통해 시스템 패키지 인스톨러를 직접 찌릅니다.', 'info');
     window.location.href = targetUrl;
     
-    al(l, '호출 신호가 전송되었습니다. OS의 설치 관리자 팝업을 확인하십시오.', 'ok');
+    al(l, '호출 신호가 전송되었습니다. OS 설치 관리자 팝업을 확인하십시오.', 'ok');
   } catch(e) {
     al(l, '핸드오프 프로세스 실패: ' + e.message, 'err');
   }
 }
 
-// 시스템 진단
+// =======================================================
+// 시스템 진단 유틸리티
+// =======================================================
 function runDiag(){
   var l=$('logDiag');cl(l);
   al(l,'System Information','info');
@@ -229,7 +338,7 @@ function runDiag(){
     al(l, c[0] + ': ' + (c[1] ? 'Supported' : 'Not Supported'), c[1] ? 'ok' : 'err');
   });
   
-  al(l,'\n진단이 완료되었습니다. Web Share API가 제한된 환경이므로 Navigation 우회 방식을 권장합니다.','info');
+  al(l,'\n진단이 완료되었습니다. Method 1 (Zero-Disk) 우회 방식을 가장 먼저 시도해 보시길 권장합니다.','info');
 }
 </script>
 </body>
