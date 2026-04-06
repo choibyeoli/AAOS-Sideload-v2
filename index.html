@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AAOS Sideload Sniper v10</title>
+<title>AAOS Share Fuzzer v11</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#050505;color:#e2e8f0;padding:20px;max-width:800px;margin:0 auto}
@@ -17,52 +17,42 @@
   button{padding:12px 24px;border:none;border-radius:6px;font-size:0.95em;font-weight:600;cursor:pointer;width:100%;margin-bottom:8px;}
   .bp{background:#0284c7;color:#fff}.bp:active{background:#0369a1}
   .bs{background:#334155;color:#cbd5e1}.bs:active{background:#475569}
-  .br{background:#dc2626;color:#fff}.br:active{background:#b91c1c}
+  .bg{background:#059669;color:#fff}.bg:active{background:#047857}
   hr{border:none;border-top:1px solid #333;margin:12px 0 16px}
   .log{background:#000;border:1px solid #222;border-radius:6px;padding:12px;font-family:monospace;font-size:0.8em;color:#cbd5e1;max-height:250px;overflow-y:auto;margin-top:12px;display:none;line-height:1.6}
   .log.show{display:block}
   .log-ok{color:#4ade80}.log-warn{color:#fbbf24}.log-err{color:#f87171}.log-info{color:#7dd3fc}
-  .pbar{width:100%;height:6px;background:#333;border-radius:3px;margin:8px 0;display:none;}
-  .pbar.show{display:block}
-  .pfill{height:100%;background:#38bdf8;width:0%;transition:width 0.3s}
-  .ptext{font-size:0.8em;color:#94a3b8;margin-bottom:4px;display:none}
-  .ptext.show{display:block}
 </style>
 </head>
 <body>
 
-<h1>Sideload Sniper v10</h1>
-<p class="sub">크로미움 보안 정책 및 MDM 원천 차단 우회 모듈</p>
+<h1>Share Fuzzer v11</h1>
+<p class="sub">브라우저 검열 우회 및 인스톨러 후킹을 위한 MIME 교차 테스트</p>
 
 <div class="m">
-  <h2>1. RAM 탄창 장전</h2>
-  <p class="d">디스크를 거치지 않고 메모리에 대상 파일을 장전합니다.</p>
+  <h2>1. RAM에 파일 장전</h2>
   <hr>
   <input type="text" id="urlInput" placeholder="APK URL 입력">
-  <button class="bp" onclick="loadToRAM()">페이로드 메모리 적재</button>
-  <div class="ptext" id="pt">대기 상태</div>
-  <div class="pbar" id="pb"><div class="pfill" id="pf"></div></div>
+  <button class="bp" onclick="loadToRAM()">페이로드 메모리 적재 (필수)</button>
   <div class="log" id="logRam"></div>
 </div>
 
-<div class="m">
-  <h2>무기 A: Share API 스푸핑 (블랙리스트 우회)</h2>
-  <p class="d">.apk 확장자가 브라우저 공유 차단 목록에 있는 것을 역이용하여, 안전한 파일로 위장해 공유 창을 강제 호출합니다.</p>
+<div class="m" id="fuzzArea" style="display:none; border-color:#059669;">
+  <h2 style="color:#10b981;">2. 확장자 / MIME 섞어치기 타격</h2>
+  <p class="d">어떤 조합이 웨일의 차단을 피하면서 동시에 공유 창에 '패키지 설치'를 띄우는지 테스트합니다.</p>
   <hr>
-  <button class="bs" onclick="spoofShare('app.zip', 'application/zip')">1. ZIP 파일로 위장 공유 (추천)</button>
-  <button class="bs" onclick="spoofShare('app.bin', 'application/octet-stream')">2. BIN 바이너리로 위장 공유</button>
-  <button class="bs" onclick="spoofShare('app.txt', 'text/plain')">3. TXT 문서로 위장 공유</button>
+  
+  <button class="bs" onclick="fuzzShare('app.apk', 'text/plain')">타격 1: 이름(.apk) + 타입(text/plain)</button>
+  
+  <button class="bs" onclick="fuzzShare('app.apk', '*/*')">타격 2: 이름(.apk) + 타입(*/*)</button>
+  
+  <button class="bs" onclick="fuzzShare('app.apk', '')">타격 3: 이름(.apk) + 타입(비워둠)</button>
+  
+  <button class="bs" onclick="fuzzShare('app.txt', 'application/vnd.android.package-archive')">타격 4: 이름(.txt) + 타입(APK)</button>
+  
+  <button class="bs" onclick="fuzzShare('app.zip', 'application/zip')">타격 5: 이름(.zip) + 타입(application/zip)</button>
+  
   <div class="log" id="logShare"></div>
-</div>
-
-<div class="m" style="border-color: #dc2626;">
-  <h2 style="color: #fca5a5;">무기 B: 인스톨러 다이렉트 저격 (MDM 우회)</h2>
-  <p class="d">보안 정책이 브로드캐스트(VIEW)를 차단하더라도, 안드로이드 순정 패키지 설치 프로그램의 코어 컴포넌트 좌표를 직접 타격합니다.</p>
-  <hr>
-  <button class="br" onclick="sniperIntent('com.android.packageinstaller/.InstallStart')">타격점 1: AOSP InstallStart</button>
-  <button class="br" onclick="sniperIntent('com.google.android.packageinstaller/com.android.packageinstaller.InstallStart')">타격점 2: Google InstallStart</button>
-  <button class="br" onclick="sniperIntent('com.android.packageinstaller/.PackageInstallerActivity')">타격점 3: Legacy Activity</button>
-  <div class="log" id="logSniper"></div>
 </div>
 
 <script>
@@ -79,75 +69,43 @@ function fb(b){return b<1024?b+' B':b<1048576?(b/1024).toFixed(2)+' KB':(b/10485
 
 var _ramBlob = null;
 
-// 공통 fetch (버퍼링 전용으로 간소화)
 async function loadToRAM() {
   var url = $('urlInput').value.trim(), l = $('logRam'); cl(l);
   if (!url) { al(l, 'URL을 입력하십시오.', 'err'); return; }
   
-  var pt=$('pt'), pb=$('pb'), pf=$('pf');
-  pt.classList.add('show'); pb.classList.add('show');
-  pt.textContent='데이터 수신 중...'; pf.style.width='50%';
   al(l,'네트워크 요청 시작...','info');
-
   try {
     var response = await fetch(url);
     if(!response.ok) throw new Error('HTTP ' + response.status);
     _ramBlob = await response.blob();
-    pf.style.width='100%';
-    pt.textContent='장전 완료: ' + fb(_ramBlob.size);
-    al(l,'메모리 적재 완료! (MIME: ' + _ramBlob.type + ')', 'ok');
+    al(l,'메모리 적재 완료! 크기: ' + fb(_ramBlob.size), 'ok');
+    $('fuzzArea').style.display = 'block';
   } catch(e) {
-    pt.textContent='요청 실패'; al(l, e.message, 'err');
+    al(l, '적재 실패: ' + e.message, 'err');
   }
 }
 
-// 무기 A: Share 스푸핑
-async function spoofShare(fakeName, fakeType) {
+async function fuzzShare(fileName, mimeType) {
   var l = $('logShare'); cl(l);
-  if (!_ramBlob) { al(l, 'RAM에 먼저 장전하십시오.', 'err'); return; }
-  if (!navigator.share) { al(l, 'Share API 미지원', 'err'); return; }
+  if (!_ramBlob) return;
+  if (!navigator.share) { al(l, 'Share API 미지원 브라우저', 'err'); return; }
 
-  al(l, '브라우저 검열 우회용 위장 파일 생성 중... (' + fakeName + ')', 'info');
+  al(l, `테스트 조합 -> 이름: [${fileName}] / MIME: [${mimeType || '없음'}]`, 'info');
   try {
-    // APK 데이터를 다른 확장자로 세탁
-    var spoofedFile = new File([_ramBlob], fakeName, { type: fakeType });
+    var spoofedFile = new File([_ramBlob], fileName, { type: mimeType });
     
     if (navigator.canShare && navigator.canShare({ files: [spoofedFile] })) {
       await navigator.share({
         files: [spoofedFile],
-        title: 'Open File',
-        text: '파일을 열 앱을 선택하세요.'
+        title: 'APK Install Test',
+        text: '목록에 패키지 설치가 뜨는지 확인하세요.'
       });
-      al(l, '공유 창 호출 성공! 목록에 패키지 설치 관리자가 뜨길 빕니다.', 'ok');
+      al(l, '✅ 브라우저 검열 통과! 공유 창 목록을 확인하십시오.', 'ok');
     } else {
-      al(l, '이 확장자(' + fakeName + ')도 브라우저가 공유를 막았습니다.', 'err');
+      al(l, '❌ 브라우저가 이 조합의 공유를 차단했습니다.', 'err');
     }
   } catch (e) {
-    al(l, '공유 실패: ' + e.message, 'err');
-  }
-}
-
-// 무기 B: 컴포넌트 다이렉트 저격
-async function sniperIntent(componentName) {
-  var l = $('logSniper'); cl(l);
-  if (!_ramBlob) { al(l, 'RAM에 먼저 장전하십시오.', 'err'); return; }
-
-  al(l, '안드로이드 코어 설치 컴포넌트 저격 준비: ' + componentName, 'info');
-  try {
-    // 1. 메모리의 APK를 읽을 수 있도록 Blob URL 생성
-    var apkBlob = new Blob([_ramBlob], { type: 'application/vnd.android.package-archive' });
-    var blobUrl = URL.createObjectURL(apkBlob);
-    
-    // 2. 다이렉트 컴포넌트 인텐트 조립 (VIEW가 아닌 강제 지정)
-    var intentUri = 'intent://' + blobUrl.replace(/^blob:/, '') + 
-                    '#Intent;scheme=blob;action=android.intent.action.INSTALL_PACKAGE;type=application/vnd.android.package-archive;component=' + componentName + ';end';
-    
-    al(l, '발사: ' + intentUri.substring(0, 80) + '...', 'info');
-    
-    window.location.href = intentUri;
-    al(l, '명령 하달 완료. 설치 창이 멱살 잡혀서 올라오길 빕니다.', 'ok');
-  } catch(e) {
-    al(l, '인텐트 발사 실패: ' + e.message, 'err');
+    al(l, '공유 에러: ' + e.message, 'err');
   }
 }
 </script>
